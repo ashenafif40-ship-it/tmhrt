@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>መሰረታዊ ትምህርት</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Noto Sans Ethiopic', Arial, sans-serif; margin: 0; background: #f4f7fb; color: #1f2937; }
+  header { background: #2563eb; color: #fff; padding: 16px; text-align: center; }
+  header h1 { margin: 0; font-size: 22px; }
+  .container { max-width: 760px; margin: 0 auto; padding: 16px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .card { background: #fff; border-radius: 12px; padding: 20px 12px; text-align: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,.1); font-size: 18px; }
+  .card:hover { background: #dbeafe; }
+  .card span { display: block; font-size: 32px; margin-bottom: 6px; }
+  .panel { background: #fff; border-radius: 12px; padding: 16px; margin-top: 12px; box-shadow: 0 2px 6px rgba(0,0,0,.1); }
+  button { background: #2563eb; color: #fff; border: 0; border-radius: 8px; padding: 10px 14px; margin: 4px 4px 4px 0; font-size: 16px; cursor: pointer; }
+  button.secondary { background: #6b7280; }
+  .opt { display: block; width: 100%; text-align: left; background: #e5e7eb; color: #111; }
+  .opt.right { background: #86efac; }
+  .opt.wrong { background: #fca5a5; }
+  .lesson h3 { margin-top: 0; }
+  .score { font-weight: bold; color: #059669; }
+</style>
+</head>
+<body>
+<header><h1>📚 መሰረታዊ ትምህርት</h1></header>
+<div class="container" id="app"></div>
+
+<script>
+const subjects = [
+  { id: 'english', icon: '🔤', name: 'እንግሊዝኛ',
+    lessons: [
+      { title: 'ፊደላት (Alphabet)', text: 'የእንግሊዝኛ ፊደላት 26 ናቸው፦ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z። አናባቢዎች አምስት ናቸው፦ A, E, I, O, U።' },
+      { title: 'መሰረታዊ ቃላት', text: 'Hello = ሰላም፣ Thank you = አመሰግናለሁ፣ Water = ውሃ፣ Food = ምግብ፣ Book = መጽሐፍ፣ School = ትምህርት ቤት፣ Teacher = መምህር፣ Friend = ጓደኛ፣ Mother = እናት፣ Father = አባት።' },
+      { title: 'ሰላምታ', text: 'Good morning = እንደምን አደርክ፣ How are you? = እንዴት ነህ?፣ I am fine = ደህና ነኝ፣ My name is ... = ስሜ ... ነው።' }
+    ],
+    quiz: [
+      { q: 'የእንግሊዝኛ ፊደላት ስንት ናቸው?', o: ['24', '26', '28'], a: 1 },
+      { q: '"Water" በአማርኛ ምን ማለት ነው?', o: ['ምግብ', 'ውሃ', 'መጽሐፍ'], a: 1 },
+      { q: '"I am fine" ማለት ምን ማለት ነው?', o: ['ደህና ነኝ', 'ስሜ ነው', 'አመሰግናለሁ'], a: 0 },
+      { q: 'ከሚከተሉት አናባቢ የሆነው የቱ ነው?', o: ['B', 'K', 'E'], a: 2 }
+    ] },
+  { id: 'math', icon: '➗', name: 'ሂሳብ',
+    lessons: [
+      { title: 'ቁጥሮች', text: '1 One, 2 Two, 3 Three, 4 Four, 5 Five, 6 Six, 7 Seven, 8 Eight, 9 Nine, 10 Ten, 100 One hundred።' },
+      { title: 'አራቱ ስሌቶች', text: 'መደመር 5 + 3 = 8። መቀነስ 9 − 4 = 5። ማባዛት 6 × 7 = 42። ማካፈል 20 ÷ 4 = 5።' },
+      { title: 'ቅርጾች', text: 'ክብ (Circle)፣ ሦስት ማዕዘን (Triangle) ሦስት ጎን፣ አራት ማዕዘን (Rectangle)፣ ካሬ (Square) አራት እኩል ጎኖች።' }
+    ],
+    quiz: [
+      { q: '12 + 15 = ?', o: ['26', '27', '28'], a: 1 },
+      { q: '8 × 6 = ?', o: ['48', '42', '56'], a: 0 },
+      { q: '36 ÷ 9 = ?', o: ['3', '4', '6'], a: 1 },
+      { q: 'ካሬ ስንት ጎኖች አሉት?', o: ['3', '4', '5'], a: 1 }
+    ] },
+  { id: 'physics', icon: '⚡', name: 'ፊዚክስ',
+    lessons: [
+      { title: 'እንቅስቃሴና ፍጥነት', text: 'ፍጥነት = ርቀት ÷ ጊዜ። መኪና በ2 ሰዓት 120 ኪሎ ሜትር ከተጓዘ ፍጥነቱ 60 ኪሎ ሜትር በሰዓት ነው።' },
+      { title: 'ኃይል', text: 'ኃይል መግፋት ወይም መሳብ ነው። ስበት ነገሮችን ወደ ምድር ይስባል። ክርክርት እንቅስቃሴን ያዘገያል።' },
+      { title: 'ብርሃንና ድምጽ', text: 'ብርሃን ከድምጽ ይፈጥናል፤ ለዚህ ነው መብረቅ ቀድሞ የሚታየው። ድምጽ በባዶ ቦታ ውስጥ አይጓዝም።' }
+    ],
+    quiz: [
+      { q: 'ነገሮችን ወደ ምድር የሚስብ ኃይል ምን ይባላል?', o: ['ክርክርት', 'ስበት', 'ሙቀት'], a: 1 },
+      { q: 'መኪና በ3 ሰዓት 180 ኪሎ ሜትር ቢጓዝ ፍጥነቱ?', o: ['50', '60', '70'], a: 1 },
+      { q: 'ድምጽ በባዶ ቦታ ይጓዛል?', o: ['አዎ', 'አይጓዝም'], a: 1 }
+    ] },
+  { id: 'biology', icon: '🧬', name: 'ባዮሎጂ',
+    lessons: [
+      { title: 'ሕይወት ያላቸው ነገሮች', text: 'ሕይወት ያላቸው ነገሮች ይተነፍሳሉ፣ ይመገባሉ፣ ያድጋሉ፣ ይራባሉ፣ ለአካባቢ ምላሽ ይሰጣሉ፣ ይንቀሳቀሳሉ፣ ቆሻሻ ያስወግዳሉ።' },
+      { title: 'ሴል', text: 'ሴል የሕይወት መሠረታዊ ክፍል ነው። ኒውክሊየስ የሴሉ መቆጣጠሪያ ነው። ሳይቶፕላዝም የውስጥ ፈሳሽ ነው። የሴል ሽፋን የሚገባና የሚወጣውን ይቆጣጠራል።' },
+      { title: 'የሰውነት ክፍሎችና ተክሎች', text: 'ልብ ደም ያሰራጫል፣ ሳንባ ይተነፍሳል፣ አንጎል ይቆጣጠራል። ተክሎች በፎቶሲንተሲስ ከፀሐይ ብርሃን፣ ውሃና ካርቦን ዳይኦክሳይድ ምግብ ያመርታሉ።' }
+    ],
+    quiz: [
+      { q: 'ደምን የሚያሰራጨው የሰውነት ክፍል?', o: ['ሳንባ', 'ልብ', 'ሆድ'], a: 1 },
+      { q: 'ተክሎች ምግብ የሚያዘጋጁበት ሂደት?', o: ['ፎቶሲንተሲስ', 'ትንፋሽ', 'መራባት'], a: 0 },
+      { q: 'የሴሉ መቆጣጠሪያ ማዕከል?', o: ['ሳይቶፕላዝም', 'ኒውክሊየስ', 'ሽፋን'], a: 1 }
+    ] },
+  { id: 'nature', icon: '🌍', name: 'ተፈጥሮ ሳይንስ',
+    lessons: [
+      { title: 'ምድርና ጠፈር', text: 'ምድር ከፀሐይ ሦስተኛዋ ፕላኔት ናት። በራሷ ዛቢያ ስትሽከረከር ቀንና ሌሊት ይፈጠራል። ጨረቃ ምድርን ትዞራለች።' },
+      { title: 'የውሃ ዑደት', text: 'ውሃ ይተናል (Evaporation)፣ ደመና ይሆናል (Condensation)፣ ዝናብ ይዘንባል (Precipitation)፣ ወደ ወንዝና ባሕር ይሰበሰባል።' },
+      { title: 'የቁስ ሁኔታዎች', text: 'ጠጣር (በረዶ)፣ ፈሳሽ (ውሃ)፣ ጋዝ (እንፋሎት)። ሙቀት ሲጨምር በረዶ ይቀልጣል።' }
+    ],
+    quiz: [
+      { q: 'ቀንና ሌሊት የሚፈጠረው ለምንድን ነው?', o: ['ምድር በዛቢያዋ ስለምትሽከረከር', 'ጨረቃ ስለምትዞር', 'ደመና ስላለ'], a: 0 },
+      { q: 'ውሃ ወደ እንፋሎት የሚቀየርበት ሂደት?', o: ['Evaporation', 'Condensation', 'Precipitation'], a: 0 },
+      { q: 'በረዶ የየትኛው የቁስ ሁኔታ ምሳሌ ነው?', o: ['ጋዝ', 'ፈሳሽ', 'ጠጣር'], a: 2 }
+    ] }
+];
+
+const app = document.getElementById('app');
+let best = JSON.parse(localStorage.getItem('best') || '{}');
+
+function home() {
+  app.innerHTML = '<h2>የትምህርት ዓይነት ምረጥ</h2><div class="grid">' +
+    subjects.map(s => `<div class="card" onclick="openSubject('${s.id}')"><span>${s.icon}</span>${s.name}${best[s.id] !== undefined ? '<br><small class="score">ከፍተኛ ውጤት: ' + best[s.id] + '</small>' : ''}</div>`).join('') + '</div>';
+}
+
+function openSubject(id) {
+  const s = subjects.find(x => x.id === id);
+  app.innerHTML = `<button class="secondary" onclick="home()">← ተመለስ</button><h2>${s.icon} ${s.name}</h2>` +
+    s.lessons.map(l => `<div class="panel lesson"><h3>${l.title}</h3><p>${l.text}</p></div>`).join('') +
+    `<button onclick="startQuiz('${id}')">📝 ጥያቄ ጀምር</button>`;
+}
+
+let state = {};
+function startQuiz(id) {
+  state = { id, i: 0, score: 0 };
+  showQ();
+}
+
+function showQ() {
+  const s = subjects.find(x => x.id === state.id);
+  if (state.i >= s.quiz.length) {
+    if (best[s.id] === undefined || state.score > best[s.id]) { best[s.id] = state.score; localStorage.setItem('best', JSON.stringify(best)); }
+    app.innerHTML = `<div class="panel"><h2>አልቋል! 🎉</h2><p class="score">ውጤት: ${state.score} / ${s.quiz.length}</p><button onclick="startQuiz('${s.id}')">እንደገና</button><button class="secondary" onclick="home()">ወደ ዋና ገጽ</button></div>`;
+    return;
+  }
+  const q = s.quiz[state.i];
+  app.innerHTML = `<div class="panel"><p>ጥያቄ ${state.i + 1} / ${s.quiz.length}</p><h3>${q.q}</h3>` +
+    q.o.map((o, k) => `<button class="opt" onclick="answer(${k}, this)">${o}</button>`).join('') + '</div>';
+}
+
+function answer(k, el) {
+  const s = subjects.find(x => x.id === state.id);
+  const q = s.quiz[state.i];
+  const btns = document.querySelectorAll('.opt');
+  btns.forEach(b => b.disabled = true);
+  btns[q.a].classList.add('right');
+  if (k === q.a) state.score++; else el.classList.add('wrong');
+  setTimeout(() => { state.i++; showQ(); }, 1000);
+}
+
+home();
+</script>
+</body>
+</html>።  
